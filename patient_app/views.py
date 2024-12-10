@@ -25,7 +25,7 @@ from rest_framework import status
 
 
 class CommunicationCreateView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated,IsPatientUser]
     
     def post(self, request):
         user = request.user  # The currently authenticated user
@@ -76,3 +76,55 @@ class CommunicationReplyView(APIView):
             serializer.save(status='resolved')  # Mark as resolved when admin replies
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from .models import EHR
+from .serializers import EHRSerializer
+from rest_framework.generics import GenericAPIView
+from .models import Appointment
+from .serializers import AppointmentSerializer
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from .models import EHR
+from .serializers import EHRSerializer
+from rest_framework import generics
+
+
+
+class EHRListCreateView(ListCreateAPIView):
+    permission_classes = [IsAuthenticated,IsPatientUser]
+
+    """
+    Handles listing all EHR records and creating a new one.
+    """
+    queryset = EHR.objects.all()
+    serializer_class = EHRSerializer
+
+class EHRDetailView(RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticated,IsPatientUser]
+
+    """
+    Handles retrieving, updating, and deleting a specific EHR record by ID.
+    """
+    queryset = EHR.objects.all()
+    serializer_class = EHRSerializer
+
+
+
+
+
+
+
+
+# Appointment CRUD view using CreateReadUpdateDestroyAPIView
+class AppointmentListCreateView(generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticated,IsPatientUser]
+
+    queryset = Appointment.objects.all()
+    serializer_class = AppointmentSerializer
+
+# Appointment Retrieve, Update, and Delete view using CreateReadUpdateDestroyAPIView
+class AppointmentDetailView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticated,IsPatientUser]
+
+    queryset = Appointment.objects.all()
+    serializer_class = AppointmentSerializer

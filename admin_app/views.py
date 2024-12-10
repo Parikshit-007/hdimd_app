@@ -357,37 +357,52 @@ class IsPatientUser(BasePermission):
     def has_permission(self, request, view):
         return request.user.is_authenticated and request.user.role == 'patient'
 class CommunicationCreateView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [IsAuthenticated, IsPatientUser]  # Only patients can create a query
+    
     """
-    View for creating a new communication (query from user to admin).
+    View for creating a new communication (query from patient to admin).
     """
     def post(self, request):
-        # The sender and receiver are passed as strings (e.g., 'User1', 'Admin')
-        serializer = CommunicationSerializer(data=request.data)
+        # Ensure that the communication is between a patient and an admin
+        if request.user.role != 'patient':
+            return Response({"detail": "Only patients can create queries."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # The sender (patient) and receiver (admin) are passed in the data
+        data = request.data
+        data['sender'] = request.user.email  # Set the sender as the logged-in patient
+        data['receiver'] = 'admin'  # The receiver is always admin for patient queries
+        
+        serializer = CommunicationSerializer(data=data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save()  # Save the communication query
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
 class CommunicationReplyView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [IsAuthenticated, IsAdminUser]  # Only admins can reply to queries
+    
     """
-    View for admin to reply to a query message.
+    View for admin to reply to a query message from a patient.
     """
     def patch(self, request, sender, receiver):
+        # Ensure the receiver is a patient and sender is admin
+        if request.user.role != 'admin':
+            return Response({"detail": "Only admins can reply."}, status=status.HTTP_400_BAD_REQUEST)
+
         communication = Communication.objects.filter(sender=sender, receiver=receiver, status='pending').first()
-        
+
         if not communication:
             return Response({"detail": "No pending query found."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Update sent_message field with the admin's response and mark as resolved
+        # Update the sent_message field with the admin's response and mark as resolved
         serializer = CommunicationSerializer(communication, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save(status='resolved')  # Mark as resolved when admin replies
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 

@@ -11,6 +11,7 @@ class UserManager(BaseUserManager):
         return user
 
 class User(AbstractBaseUser):
+
     ROLE_CHOICES = (
         ('admin', 'Admin'),
         ('hospital', 'Hospital'),
