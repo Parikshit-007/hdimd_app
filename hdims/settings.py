@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'users',
     'knox',
     'rest_framework',
+
     #'admin',
 ]
 
@@ -142,3 +143,5 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# settings.py
+ABDM_BASE_URL = "https://sandbox.abdm.gov.in/gateway"

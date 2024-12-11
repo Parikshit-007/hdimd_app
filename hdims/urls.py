@@ -22,7 +22,7 @@ urlpatterns = [
     path('users/', include('users.urls')),  
     path('admin_app/', include('admin_app.urls')), 
     path('patient/', include('patient_app.urls')),
-
+    path('api/abha/', include('abha_auth.urls')),
     # path('hospital/', include('hospital_app.urls')),  
     
 ]
